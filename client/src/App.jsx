@@ -30,8 +30,7 @@ function App() {
           <SendOrder socket={socket} />
           <SendDriver socket={socket} />
         </div>
-        
-        <Queue                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 ={socket} rooms={rooms} />
+        <Queue rooms={rooms} socket={socket}/>
         <Orders socket={socket} />
       </div>
     </>
