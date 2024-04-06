@@ -13,7 +13,7 @@ function Home({socket, rooms}) {
             <div className='flex items-start gap-2'>
                 <div>
                     <SendOrder socket={socket} />
-                    <SendDriver socket={socket} />
+                    {/* <SendDriver socket={socket} /> */}
                 </div>
                 <Queue rooms={rooms} socket={socket} />
                 <Orders socket={socket} />

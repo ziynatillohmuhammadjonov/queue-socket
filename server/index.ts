@@ -39,7 +39,11 @@ io.on('connection', (socket: Socket) => {
   //     console.log(`Socket is not in room ${data.place}`);
   //   }
   // });
-
+  socket.on('join-driver', (data:{place:string, carNumber:string})=>{
+    socket.join(data.place)
+    console.log(data.carNumber+' joined '+data.place)
+    io.in(data.place).emit('add-driver', data)
+  })
   // kelgan buyurtmani tegishli xonaga yuboramiz
   socket.on('add-order',(data:{place:string, customerNumber:string})=>{
     io.in(data.place).emit("post-order", data)
