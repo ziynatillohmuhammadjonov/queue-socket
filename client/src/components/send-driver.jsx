@@ -1,13 +1,21 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
 
-function SendDriver() {
+function SendDriver({socket}) {
   const [place, setPlace] = useState('')
   const [number, setNumber] = useState('')
+  const navigate =  useNavigate()
 
   function handeSubmit(e) {
     e.preventDefault()
     console.log(place + " " + number)
+    const driverData={
+      joy:place,
+      carNumber:number
+    }
+    socket.emit('join-room', place)
+    navigate('/driverRoom')
     setNumber('')
     setPlace('')
   }
@@ -16,7 +24,7 @@ function SendDriver() {
     <form className='w-80 m-5 border-2 p-5 rounded-2xl flex flex-col gap-3' onSubmit={handeSubmit}>
       <div className="relative h-10 w-full min-w-[200px]">
         <input
-          className="peer h-full w-full rounded-[7px] border border-blue-gray-200 bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:border-2 focus:border-pink-500 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50"
+          className="peer h-80 w-80 rounded-[7px] border border-blue-gray-200 bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 focus:border-2 focus:border-pink-500 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50"
           type='text'
           placeholder=''
           onChange={e => { setNumber(e.target.value) }}
@@ -28,7 +36,7 @@ function SendDriver() {
       </div>
       <div>
         <label htmlFor="countries" className="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-400">Select an place</label>
-        <select onChange={e => { setPlace(e.target.value) }} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+        <select onChange={e => { setPlace(e.target.value) }} value={place} className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
           <option value=''>Choose a place</option>
           <option value="fergana">Fergana</option>
           <option value="quva">Quva</option>

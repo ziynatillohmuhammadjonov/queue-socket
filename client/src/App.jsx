@@ -1,13 +1,10 @@
-import { useEffect, useState } from 'react';
-import * as io from 'socket.io-client';
-import SendOrder from './components/send-order';
-import Orders from './components/orders';
-import SendDriver from './components/send-driver';
-import Queue from './components/queue';
 import axios from 'axios';
-import {BrowserRouter as Router, Route, Routes} from 'react-router-dom'
+import { useEffect, useState } from 'react';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import * as io from 'socket.io-client';
+import DriverPage from './pages/driver';
 import Home from './pages/home';
-import Driver from './components/driver';
+import DriverRoom from './pages/driverRoom/DriverRoom';
 
 const socket = io.connect('http://localhost:4000')
 
@@ -27,7 +24,8 @@ function App() {
     <Router>
       <Routes>
         <Route path='/' element={<Home socket={socket} rooms={rooms} />}></Route>
-        <Route path='/driver' element={<Driver/>}/>
+        <Route path='/driver' element={<DriverPage socket={socket}/>}/>
+        <Route path='/driverRoom' element={<DriverRoom socket={socket}/>}/>
       </Routes>
       
     </Router>
