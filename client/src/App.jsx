@@ -4,6 +4,7 @@ import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import * as io from 'socket.io-client';
 import DriverPage from './pages/driver';
 import Home from './pages/home';
+import OnTheWay from './pages/on-the-way';
 import DriverRoom from './pages/driverRoom/DriverRoom';
 
 const socket = io.connect('http://localhost:4000')
@@ -26,6 +27,7 @@ function App() {
         <Route path='/' element={<Home socket={socket} rooms={rooms} />}></Route>
         <Route path='/driver' element={<DriverPage socket={socket}/>}/>
         <Route path='/driverRoom' element={<DriverRoom socket={socket}/>}/>
+        <Route path='/on-the-way' element={<OnTheWay socket={socket}/>}/>
       </Routes>
       
     </Router>

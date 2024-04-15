@@ -30,6 +30,10 @@ app.get("/", (req: Request, res: Response) => {
 });
 const customIds = new Map()
 
+const driverArray:string[] =[]
+const orderArray:string[]=[]
+const onthewayArray:string[]=[]
+
 io.on('connection', (socket: Socket) => {
   socket.on('join-room', (data: string) => {
     socket.join(data);
@@ -58,6 +62,9 @@ io.on('connection', (socket: Socket) => {
     
     socket.on('receiver-order',()=>{
       clearInterval(interval)
+      socket.leave(data.place)
+      console.log(`${socket.id} leave room ${data.place}`)
+
     })
     return customIds.set(data.poz, socket.id)
     // console.log(customIds)
@@ -73,12 +80,11 @@ io.on('connection', (socket: Socket) => {
 
   // send to driver 
   socket.on('add-order-to-driver',(data:{place:string, poz:string, customerNumber: string})=>{
-    console.log(customIds)
-    console.log(data)
     if(customIds.has(data.poz)){
       console.log(customIds.get(data.poz))
       const driverSocketId = customIds.get(data.poz); // Получаем соответствующий socket.id
       socket.to(driverSocketId).emit('new-order',data.customerNumber)
+      customIds.delete(data.poz)
     }else{
       io.emit('error', "Mavjud bo'lmagan poz")
     }
@@ -107,13 +113,12 @@ io.on('connection', (socket: Socket) => {
     } else {
       // Handle the case where the room doesn't exist
     }
-    for (let i = 0; i < users.length; i++) {
-
+    for (let i = 0; i < users.length; i++) { 
+      const userId = users[i];
       interval = setInterval(() => {
-        const userId = users[i];
 
         // Отправляем сообщение только определенному пользователю
-        io.to(userId).emit('new-order', data.customerNumber);
+        socket.to(userId).emit('new-order', data.customerNumber);
 
         // Переходим к следующему пользователю
 
