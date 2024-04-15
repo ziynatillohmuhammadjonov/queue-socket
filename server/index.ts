@@ -1,9 +1,8 @@
-import express, { Express, Request, Response } from "express";
-import { createServer } from 'node:http'
-import { Server, Socket } from 'socket.io'
-import dotenv from "dotenv";
 import cors from 'cors';
-import { channel } from "node:process";
+import dotenv from "dotenv";
+import express, { Express, Request, Response } from "express";
+import { createServer } from 'node:http';
+import { Server, Socket } from 'socket.io';
 
 dotenv.config();
 
@@ -12,7 +11,10 @@ const port = process.env.PORT || 4001;
 app.use(cors())
 
 const server = createServer(app)
+
 const rooms: string[] = ['fergana', 'quva', 'qoshkechik', 'toshloq']
+const messageQueues: { [room: string]: string[] } = {}
+
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -26,11 +28,15 @@ app.get('/rooms', (req: Request, res: Response) => {
 app.get("/", (req: Request, res: Response) => {
   res.send("Express + TypeScript Server");
 });
+const customIds = new Map()
 
 io.on('connection', (socket: Socket) => {
   socket.on('join-room', (data: string) => {
     socket.join(data);
     // console.log(`${socket.id} joined room ${data}`);
+    // if(!messageQueues[data]){
+    //   messageQueues[data]=[]
+    // }
   });
 
   // socket.on('test-msg', (data: { place: string, customerNumber: any }) => {
@@ -40,19 +46,44 @@ io.on('connection', (socket: Socket) => {
   //     console.log(`Socket is not in room ${data.place}`);
   //   }
   // });
-  console.log(io.sockets.adapter.rooms)
-  socket.on('join-driver', (data: { place: string, carNumber: string }) => {
+  socket.on('join-driver', (data: { place: string, poz:string, carNumber: string }) => {
     socket.join(data.place)
-    // console.log(data.carNumber+' joined '+data.place)
-
-
-
+    io.in(data.place).emit('add-driver', data)
+    console.log(data.carNumber + ' joined ' + data.place + ' id driver ' + socket.id)
+    
+    socket.on('leave-driver-room', (driveData: string) => {
+      console.log(socket.id + ' li xaydovchi xonadan chiqib ketdi...')
+      socket.leave(driveData)
+    })
+    
+    socket.on('receiver-order',()=>{
+      clearInterval(interval)
+    })
+    return customIds.set(data.poz, socket.id)
+    // console.log(customIds)
   })
+
+
   // kelgan buyurtmani tegishli xonaga yuboramiz
   socket.on('add-order', (data: { place: string, customerNumber: string }) => {
     io.in(data.place).emit("post-order", data)
+    startSendingMessages(data)
 
   })
+
+  // send to driver 
+  socket.on('add-order-to-driver',(data:{place:string, poz:string, customerNumber: string})=>{
+    console.log(customIds)
+    console.log(data)
+    if(customIds.has(data.poz)){
+      console.log(customIds.get(data.poz))
+      const driverSocketId = customIds.get(data.poz); // Получаем соответствующий socket.id
+      socket.to(driverSocketId).emit('new-order',data.customerNumber)
+    }else{
+      io.emit('error', "Mavjud bo'lmagan poz")
+    }
+  })
+
 
   // Обработка события 'leave-room'
   socket.on('leave-room', (room: string) => {
@@ -63,8 +94,8 @@ io.on('connection', (socket: Socket) => {
 
   // Дополнительный код
   // Функция для отправки сообщений поочередно
-  function startSendingMessages(channel: string) {
-    const room = io.sockets.adapter.rooms.get(channel);
+  function startSendingMessages(data: any) {
+    const room = io.sockets.adapter.rooms.get(data.place);
     const users: string[] = [];
     if (room) {
       room.forEach(socketId => {
@@ -73,28 +104,35 @@ io.on('connection', (socket: Socket) => {
           users.push(socket.id); // or any other socket property you need
         }
       });
-      console.log(users);
     } else {
       // Handle the case where the room doesn't exist
     }
-    let index = 0;
+    for (let i = 0; i < users.length; i++) {
 
-    interval = setInterval(() => {
-      if (messageQueues[channel].length > 0) {
-        const message = messageQueues[channel].shift();
-        const userId = users[index];
+      interval = setInterval(() => {
+        const userId = users[i];
 
         // Отправляем сообщение только определенному пользователю
-        io.to(userId).emit('newMessage', message);
+        io.to(userId).emit('new-order', data.customerNumber);
 
         // Переходим к следующему пользователю
-        index = (index + 1) % users.length;
-      } else {
-        clearInterval(interval);
-      }
-    }, 5000); // Интервал между отправкой сообщений (в миллисекундах)
-  }
 
+        // if (messageQueues[channel].length > 0) {
+        //   const message = messageQueues[channel].shift();
+        //   const userId = users[index];
+
+        //   // Отправляем сообщение только определенному пользователю
+        //   io.to(userId).emit('newMessage', message);
+
+        //   // Переходим к следующему пользователю
+        //   index = (index + 1) % users.length;
+        // } else {
+        //   clearInterval(interval);
+        // }
+      }, 5000); // Интервал между отправкой сообщений (в миллисекундах)
+
+    }
+  }
 });
 
 
